@@ -66,6 +66,18 @@ for alert_conf_and_response in alert_confs_and_responses:
 
 alert_confs_and_metric_values = zip(alert_configuration_array, metric_values)
 
+# save metric values in local db
 
+for alert_conf_and_metric_values in alert_confs_and_metric_values:
+    alert_conf = alert_conf_and_metric_values[0]
+    metric_values = alert_conf_and_metric_values[1]
+    #save metric value for time window 0
+    if metric_values[0] is not None:
+        uri = str(cfg.local_config['host']) + ':' + str(cfg.local_config['port']) + str(cfg.routes['save-metric-value']) + \
+              '?timeWindow=timeWindow0&value='+str(metric_values[0])
+        r = requests.post(uri, json=alert_conf)
+    if metric_values[1] is not None:
+        uri = str(cfg.local_config['host']) + ':' + str(cfg.local_config['port']) + str(cfg.routes['save-metric-value']) + \
+              '?timeWindow=timeWindow1&value='+str(metric_values[1])
+        r = requests.post(uri, json=alert_conf)
 
-print(metric_values)
