@@ -16,26 +16,24 @@ json_data = json.loads(r.text)
 alert_es_parameters_array = json_data['alertESParametersArray']
 alert_configuration_array = json_data['alertConfigurationArray']
 
-#save in local db
+#save alert-es-parameters in local db
 
 uri = str(cfg.local_config['host'])+':'+str(cfg.local_config['port'])+str(cfg.routes['save-alert-esparameters'])
 
 for alert_es_parameters in alert_es_parameters_array:
-    print(alert_es_parameters)
     r = requests.post(uri, json=alert_es_parameters)
-    print(r)
 
 #try to get metric values for alert configuration
 
 uri = str(cfg.local_config['host'])+':'+str(cfg.local_config['port'])+str(cfg.routes['get-metric-values'])
 
 response_array = []
-for alert_configuration in alert_configuration_array:
-    print(alert_configuration)
-    r = requests.post(uri, json=alert_configuration)
-    response_array.append(json.loads(r.text))
-    print(r.json())
 
+for idx, alert_configuration in enumerate(alert_configuration_array):
+    r = requests.post(uri, json=alert_configuration)
+    metric_values = json.loads(r.text)
+    response_array.append(metric_values)
+    print(str(idx+1)+'\t alertId: '+str(alert_configuration['alertId'])+', '+str(metric_values))
 
 alert_confs_and_responses = zip(alert_configuration_array, response_array)
 
@@ -43,6 +41,7 @@ alert_confs_and_responses = zip(alert_configuration_array, response_array)
 
 metric_values = []
 
+problems = 0
 for alert_conf_and_response in alert_confs_and_responses:
     alert_conf = alert_conf_and_response[0]
     response = alert_conf_and_response[1]
@@ -53,6 +52,8 @@ for alert_conf_and_response in alert_confs_and_responses:
         r = requests.post(uri, json=alert_conf)
         if r.status_code == 200: #success
             time_window_0_value = json.loads(r.text)['timeWindow0Value']
+        else:
+            problems = problems + 1
     # check if time window 0 value is present in database
     time_window_1_value = response['timeWindow1Value']
     if time_window_1_value is None:
@@ -60,8 +61,13 @@ for alert_conf_and_response in alert_confs_and_responses:
         r = requests.post(uri, json=alert_conf)
         if r.status_code == 200: #success
             time_window_1_value = json.loads(r.text)['timeWindow1Value']
+        else:
+            problems = problems + 1
 
     metric_values.append((time_window_0_value,time_window_1_value))
+
+
+print('problems:'+str(problems))
 
 
 alert_confs_and_metric_values = zip(alert_configuration_array, metric_values)
