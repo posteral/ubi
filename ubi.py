@@ -6,7 +6,6 @@ import serviceConfig as cfg
 
 #build URI from configuration file
 uri = str(cfg.staging_config['host'])+':'+str(cfg.staging_config['port'])+str(cfg.routes['fetch-alert-configs'])
-print(uri)
 
 #fetch alerts
 r = requests.post(uri)
@@ -29,7 +28,6 @@ for alert_es_parameters in alert_es_parameters_array:
 #try to get metric values for alert configuration
 
 uri = str(cfg.local_config['host'])+':'+str(cfg.local_config['port'])+str(cfg.routes['get-metric-values'])
-print(uri)
 
 response_array = []
 for alert_configuration in alert_configuration_array:
@@ -43,9 +41,31 @@ alert_confs_and_responses = zip(alert_configuration_array, response_array)
 
 #check which values aren't in database and calculate them
 
+metric_values = []
+
 for alert_conf_and_response in alert_confs_and_responses:
     alert_conf = alert_conf_and_response[0]
     response = alert_conf_and_response[1]
+    #check if time window 0 value is present in database
     time_window_0_value = response['timeWindow0Value']
+    if time_window_0_value is None:
+        uri = str(cfg.local_config['host'])+':'+str(cfg.local_config['port'])+str(cfg.routes['get-metric-value'])+'?timeWindow=timeWindow0'
+        r = requests.post(uri, json=alert_conf)
+        if r.status_code == 200: #success
+            time_window_0_value = json.loads(r.text)['timeWindow0Value']
+    # check if time window 0 value is present in database
     time_window_1_value = response['timeWindow1Value']
-    print("oi")
+    if time_window_1_value is None:
+        uri = str(cfg.local_config['host'])+':'+str(cfg.local_config['port'])+str(cfg.routes['get-metric-value'])+'?timeWindow=timeWindow1'
+        r = requests.post(uri, json=alert_conf)
+        if r.status_code == 200: #success
+            time_window_1_value = json.loads(r.text)['timeWindow1Value']
+
+    metric_values.append((time_window_0_value,time_window_1_value))
+
+
+alert_confs_and_metric_values = zip(alert_configuration_array, metric_values)
+
+
+
+print(metric_values)
