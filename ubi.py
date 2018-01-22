@@ -1,9 +1,10 @@
 import requests
-import dbconfig as cfg
+import serviceConfig as cfg
 
-r = requests.post("http://bugs.python.org", data={'number': 12524, 'type': 'issue', 'action': 'show'})
+
+uri = str(cfg.staging_config['host'])+':'+str(cfg.staging_config['port'])+str(cfg.routes['fetch-alert-configs'])
+print(uri)
+r = requests.post(uri, data={'number': 12524, 'type': 'issue', 'action': 'show'})
 print(r.status_code, r.reason)
-print(cfg.uxpc_alerts_db_staging_config)
-
-
-#first we need to find a way to have a configuration file
+print(cfg.staging_config)
+print(r.json())
