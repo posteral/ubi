@@ -4,26 +4,35 @@ import requests
 
 import serviceConfig as cfg
 
-#build URI from configuration file
+# build URI from configuration file
 uri = str(cfg.staging_config['host'])+':'+str(cfg.staging_config['port'])+str(cfg.routes['fetch-alert-configs'])
 
-#fetch alerts
+# fetch alerts
 r = requests.post(uri)
 
-#parse response
+# parse response
 json_data = json.loads(r.text)
 
 alert_es_parameters_array = json_data['alertESParametersArray']
 alert_configuration_array = json_data['alertConfigurationArray']
 
-#save alert-es-parameters in local db
+print('-------------------------------------------------------')
+print('# AlertESParameters: '+str(len(alert_es_parameters_array)))
+print('# AlertConfigurations (different alerts): '+str(len(alert_configuration_array)))
+print('-------------------------------------------------------')
+
+
+# save alert-es-parameters in local db
 
 uri = str(cfg.local_config['host'])+':'+str(cfg.local_config['port'])+str(cfg.routes['save-alert-esparameters'])
 
 for alert_es_parameters in alert_es_parameters_array:
     r = requests.post(uri, json=alert_es_parameters)
 
-#try to get metric values for alert configuration
+
+
+hpg_requests = 0
+# try to calculate metric values for alert configuration
 
 uri = str(cfg.local_config['host'])+':'+str(cfg.local_config['port'])+str(cfg.routes['get-metric-values'])
 
@@ -37,11 +46,12 @@ for idx, alert_configuration in enumerate(alert_configuration_array):
 
 alert_confs_and_responses = zip(alert_configuration_array, response_array)
 
-#check which values aren't in database and calculate them
-
 metric_values = []
 
-problems = 0
+# let's try to identify where the problems are
+problems = []
+
+# check which values aren't in database and calculate them
 for alert_conf_and_response in alert_confs_and_responses:
     alert_conf = alert_conf_and_response[0]
     response = alert_conf_and_response[1]
@@ -50,26 +60,31 @@ for alert_conf_and_response in alert_confs_and_responses:
     if time_window_0_value is None:
         uri = str(cfg.local_config['host'])+':'+str(cfg.local_config['port'])+str(cfg.routes['get-metric-value'])+'?timeWindow=timeWindow0'
         r = requests.post(uri, json=alert_conf)
+        hpg_requests = hpg_requests + 1
         if r.status_code == 200: #success
             time_window_0_value = json.loads(r.text)['timeWindow0Value']
         else:
-            problems = problems + 1
+            problems.append((r.status_code, uri, alert_conf))
     # check if time window 0 value is present in database
     time_window_1_value = response['timeWindow1Value']
     if time_window_1_value is None:
         uri = str(cfg.local_config['host'])+':'+str(cfg.local_config['port'])+str(cfg.routes['get-metric-value'])+'?timeWindow=timeWindow1'
         r = requests.post(uri, json=alert_conf)
+        hpg_requests = hpg_requests + 1
         if r.status_code == 200: #success
             time_window_1_value = json.loads(r.text)['timeWindow1Value']
         else:
-            problems = problems + 1
+            problems.append((r.status_code, uri, alert_conf))
 
     metric_values.append((time_window_0_value,time_window_1_value))
 
 
-print('problems:'+str(problems))
+print('\n-----------------PROBLEMS-----------------------')
+for idx, problem in enumerate(problems):
+    print('Problem '+str(idx+1)+': $\n\t'+"curl --request POST --url '"+uri+"' --header 'content-type: application/json' --data '"+str(problem[2]).replace("\'","\"")+"' -i")
+print('------------------------------------------------')
 
-
+print('\n# of hpg-requests (ES queries) needed: '+str(hpg_requests))
 alert_confs_and_metric_values = zip(alert_configuration_array, metric_values)
 
 # save metric values in local db
