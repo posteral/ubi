@@ -9,7 +9,7 @@ import utils
 print(utils.Env.PRODUCTION)
 
 # fetch alerts
-r = endpoints.fetchAlertConfigs(str(cfg.staging_config['host']) + ':' + str(cfg.staging_config['port']))
+r = endpoints.fetchAlertConfigs(utils.Env.STAGING.value)
 
 # parse response
 json_data = json.loads(r.text)

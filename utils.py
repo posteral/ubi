@@ -1,6 +1,7 @@
 from enum import Enum
+import serviceConfig as cfg
 
 class Env(Enum):
-    STAGING = 1
-    PRODUCTION = 2
-    LOCAL = 3
+    STAGING = str(cfg.staging_config['host']) + ':' + str(cfg.staging_config['port'])
+    PRODUCTION = ''
+    LOCAL =str(cfg.local_config['host']) + ':' + str(cfg.local_config['port'])
