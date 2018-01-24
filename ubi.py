@@ -8,7 +8,7 @@ import serviceConfig as cfg
 uri = str(cfg.staging_config['host'])+':'+str(cfg.staging_config['port'])+str(cfg.routes['fetch-alert-configs'])
 
 # fetch alerts
-r = requests.post(uri)
+r = requests.post(uri, timeout=10)
 
 # parse response
 json_data = json.loads(r.text)
@@ -27,7 +27,7 @@ print('-------------------------------------------------------')
 uri = str(cfg.local_config['host'])+':'+str(cfg.local_config['port'])+str(cfg.routes['save-alert-esparameters'])
 
 for alert_es_parameters in alert_es_parameters_array:
-    r = requests.post(uri, json=alert_es_parameters)
+    r = requests.post(uri, json=alert_es_parameters, timeout=10)
 
 
 
@@ -39,7 +39,7 @@ uri = str(cfg.local_config['host'])+':'+str(cfg.local_config['port'])+str(cfg.ro
 response_array = []
 
 for idx, alert_configuration in enumerate(alert_configuration_array):
-    r = requests.post(uri, json=alert_configuration)
+    r = requests.post(uri, json=alert_configuration, timeout=10)
     metric_values = json.loads(r.text)
     response_array.append(metric_values)
     print(str(idx+1)+'\t alertId: '+str(alert_configuration['alertId'])+', '+str(metric_values))
@@ -59,7 +59,7 @@ for alert_conf_and_response in alert_confs_and_responses:
     time_window_0_value = response['timeWindow0Value']
     if time_window_0_value is None:
         uri = str(cfg.local_config['host'])+':'+str(cfg.local_config['port'])+str(cfg.routes['get-metric-value'])+'?timeWindow=timeWindow0'
-        r = requests.post(uri, json=alert_conf)
+        r = requests.post(uri, json=alert_conf, timeout=10)
         hpg_requests = hpg_requests + 1
         if r.status_code == 200: #success
             time_window_0_value = json.loads(r.text)['timeWindow0Value']
@@ -69,7 +69,7 @@ for alert_conf_and_response in alert_confs_and_responses:
     time_window_1_value = response['timeWindow1Value']
     if time_window_1_value is None:
         uri = str(cfg.local_config['host'])+':'+str(cfg.local_config['port'])+str(cfg.routes['get-metric-value'])+'?timeWindow=timeWindow1'
-        r = requests.post(uri, json=alert_conf)
+        r = requests.post(uri, json=alert_conf, timeout=10)
         hpg_requests = hpg_requests + 1
         if r.status_code == 200: #success
             time_window_1_value = json.loads(r.text)['timeWindow1Value']
@@ -96,9 +96,9 @@ for alert_conf_and_metric_values in alert_confs_and_metric_values:
     if metric_values[0] is not None:
         uri = str(cfg.local_config['host']) + ':' + str(cfg.local_config['port']) + str(cfg.routes['save-metric-value']) + \
               '?timeWindow=timeWindow0&value='+str(metric_values[0])
-        r = requests.post(uri, json=alert_conf)
+        r = requests.post(uri, json=alert_conf, timeout=10)
     if metric_values[1] is not None:
         uri = str(cfg.local_config['host']) + ':' + str(cfg.local_config['port']) + str(cfg.routes['save-metric-value']) + \
               '?timeWindow=timeWindow1&value='+str(metric_values[1])
-        r = requests.post(uri, json=alert_conf)
+        r = requests.post(uri, json=alert_conf, timeout=10)
 
