@@ -6,10 +6,11 @@ import endpoints
 import serviceConfig as cfg
 import utils
 
-print(utils.Env.PRODUCTION)
+INPUT_ENV = utils.Env.STAGING
+TEST_ENV = utils.Env.LOCAL
 
 # fetch alerts
-r = endpoints.fetchAlertConfigs(utils.Env.STAGING.value)
+r = endpoints.fetchAlertConfigs(INPUT_ENV)
 
 # parse response
 json_data = json.loads(r.text)
