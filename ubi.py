@@ -6,8 +6,8 @@ import endpoints
 import serviceConfig as cfg
 import utils
 
-INPUT_ENV = utils.Env.STAGING
-TEST_ENV = utils.Env.LOCAL
+INPUT_ENV = utils.Env.NEXT2
+TEST_ENV = utils.Env.NEXT2
 
 # fetch alerts
 r = endpoints.fetchAlertConfigs(INPUT_ENV)
@@ -25,7 +25,7 @@ print('-------------------------------------------------------')
 
 # save alert-es-parameters in local db
 
-uri = str(cfg.local_config['host']) + ':' + str(cfg.local_config['port']) + str(cfg.routes['save-alert-esparameters'])
+uri = TEST_ENV.base_uri() + str(cfg.routes['save-alert-esparameters'])
 
 for alert_es_parameters in alert_es_parameters_array:
     r = requests.post(uri, json=alert_es_parameters, timeout=10)
@@ -33,7 +33,7 @@ for alert_es_parameters in alert_es_parameters_array:
 hpg_requests = 0
 # try to calculate metric values for alert configuration
 
-uri = str(cfg.local_config['host']) + ':' + str(cfg.local_config['port']) + str(cfg.routes['get-metric-values'])
+uri = TEST_ENV.base_uri() + str(cfg.routes['get-metric-values'])
 
 response_array = []
 
@@ -57,7 +57,7 @@ for alert_conf_and_response in alert_confs_and_responses:
     # check if time window 0 value is present in database
     time_window_0_value = response['timeWindow0Value']
     if time_window_0_value is None:
-        uri = str(cfg.local_config['host']) + ':' + str(cfg.local_config['port']) + str(
+        uri = TEST_ENV.base_uri() + str(
             cfg.routes['get-metric-value']) + '?timeWindow=timeWindow0'
         r = requests.post(uri, json=alert_conf, timeout=10)
         hpg_requests = hpg_requests + 1
@@ -68,7 +68,7 @@ for alert_conf_and_response in alert_confs_and_responses:
     # check if time window 0 value is present in database
     time_window_1_value = response['timeWindow1Value']
     if time_window_1_value is None:
-        uri = str(cfg.local_config['host']) + ':' + str(cfg.local_config['port']) + str(
+        uri = TEST_ENV.base_uri() + str(
             cfg.routes['get-metric-value']) + '?timeWindow=timeWindow1'
         r = requests.post(uri, json=alert_conf, timeout=10)
         hpg_requests = hpg_requests + 1
@@ -82,7 +82,7 @@ for alert_conf_and_response in alert_confs_and_responses:
 print('\n-----------------PROBLEMS-----------------------')
 for idx, problem in enumerate(problems):
     print('Problem ' + str(
-        idx + 1) + ': $\n\t' + "curl --request POST --url '" + uri + "' --header 'content-type: application/json' --data '" + str(
+        idx + 1) + '('+str(problem[0])+'): $\n\t' + "curl --request POST --url '" + uri + "' --header 'content-type: application/json' --data '" + str(
         problem[2]).replace("\'", "\"") + "' -i")
 print('------------------------------------------------')
 
@@ -96,12 +96,12 @@ for alert_conf_and_metric_values in alert_confs_and_metric_values:
     metric_values = alert_conf_and_metric_values[1]
     # save metric value for time window 0
     if metric_values[0] is not None:
-        uri = str(cfg.local_config['host']) + ':' + str(cfg.local_config['port']) + str(
+        uri = TEST_ENV.base_uri() + str(
             cfg.routes['save-metric-value']) + \
               '?timeWindow=timeWindow0&value=' + str(metric_values[0])
         r = requests.post(uri, json=alert_conf, timeout=10)
     if metric_values[1] is not None:
-        uri = str(cfg.local_config['host']) + ':' + str(cfg.local_config['port']) + str(
+        uri = TEST_ENV.base_uri() + str(
             cfg.routes['save-metric-value']) + \
               '?timeWindow=timeWindow1&value=' + str(metric_values[1])
         r = requests.post(uri, json=alert_conf, timeout=10)
