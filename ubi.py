@@ -89,7 +89,8 @@ print('------------------------------------------------')
 print('\n# of hpg-requests (ES queries) needed: ' + str(hpg_requests))
 alert_confs_and_metric_values = zip(alert_configuration_array, metric_values)
 
-# save metric values in local db
+
+# save metric values in local db and notify
 
 for alert_conf_and_metric_values in alert_confs_and_metric_values:
     alert_conf = alert_conf_and_metric_values[0]
@@ -105,3 +106,9 @@ for alert_conf_and_metric_values in alert_confs_and_metric_values:
             cfg.routes['save-metric-value']) + \
               '?timeWindow=timeWindow1&value=' + str(metric_values[1])
         r = requests.post(uri, json=alert_conf, timeout=10)
+
+    #post notification
+    uri = TEST_ENV.base_uri() + str(cfg.routes['notify']) + \
+    '?timeWindow0Value=' + str(metric_values[0]) + \
+    '&timeWindow1Value=' + str(metric_values[1])
+    r = requests.post(uri, json=alert_conf, timeout=10)
