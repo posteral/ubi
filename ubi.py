@@ -7,8 +7,8 @@ import serviceConfig as cfg
 import utils
 
 NOTIFICATIONS = False
-INPUT_ENV = utils.Env.STAGING
-TEST_ENV = utils.Env.STAGING
+INPUT_ENV = utils.Env.NEXT2
+TEST_ENV = utils.Env.NEXT2
 
 # fetch alerts
 r = endpoints.fetchAlertConfigs(INPUT_ENV)
@@ -80,12 +80,38 @@ for alert_conf_and_response in alert_confs_and_responses:
 
     metric_values.append((time_window_0_value, time_window_1_value))
 
-print('\n-----------------PROBLEMS-----------------------')
+print('\n-----------------Troubleshooting-----------------------')
 for idx, problem in enumerate(problems):
-    print('Problem ' + str(
-        idx + 1) + '('+str(problem[0])+'): $\n\t' + "curl --request POST --url '" + uri + "' --header 'content-type: application/json' --data '" + str(
+    print('PROBLEM ' + str(idx + 1) + '/' + str(len(problems)) + ' (error code: ' + str(problem[0]) + '):')
+    #how do we find the associated AlertESParameters with the information which might be causing the problem?
+    problematic_alert_configuration = problem[2]
+    problematic_alert_es_parameters_id = alert_configuration['alertESParametersId']
+    problematic_alert_es_parameters = [d for d in alert_es_parameters_array if d['id'] == problematic_alert_es_parameters_id][0]
+    project_id = problematic_alert_es_parameters['projectId']
+    segment_id = problematic_alert_es_parameters['segmentId']
+    device_id = problematic_alert_es_parameters['deviceId']
+    alias_id = problematic_alert_es_parameters['aliasId']
+    zone_id = problematic_alert_es_parameters['zoneId']
+    #verify if extracted ids exist in the test environment
+    if TEST_ENV == utils.Env.NEXT2:
+        pp_base = cfg.next2_config['pp']
+    elif TEST_ENV == utils.Env.STAGING:
+        pp_base = cfg.staging_config['pp']
+    elif TEST_ENV == utils.Env.LOCAL:
+        pp_base = cfg.local_config['pp']
+    elif TEST_ENV == utils.Env.PRODUCTION['pp']:
+        pp_base = cfg.production_config['pp']
+    pp_uri = pp_base + '/projects/' + str(project_id)
+    r = requests.get(pp_uri)
+    json_data = json.loads(r.text)
+    if r.status_code == 200:
+        print('Project '+str(project_id)+': '+json_data['name'])
+    else:
+        print('Problem reaching '+pp_uri)
+    print('\t' + "curl --request POST --url '" + uri + "' --header 'content-type: application/json' --data '" + str(
         problem[2]).replace("\'", "\"") + "' -i")
-print('------------------------------------------------')
+    print('***')
+print('-------------------------------------------------------')
 
 print('\n# of hpg-requests (ES queries) needed: ' + str(hpg_requests))
 alert_confs_and_metric_values = zip(alert_configuration_array, metric_values)
