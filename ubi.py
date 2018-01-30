@@ -6,8 +6,9 @@ import endpoints
 import serviceConfig as cfg
 import utils
 
-INPUT_ENV = utils.Env.NEXT2
-TEST_ENV = utils.Env.NEXT2
+NOTIFICATIONS = False
+INPUT_ENV = utils.Env.STAGING
+TEST_ENV = utils.Env.STAGING
 
 # fetch alerts
 r = endpoints.fetchAlertConfigs(INPUT_ENV)
@@ -108,7 +109,8 @@ for alert_conf_and_metric_values in alert_confs_and_metric_values:
         r = requests.post(uri, json=alert_conf, timeout=10)
 
     #post notification
-    uri = TEST_ENV.base_uri() + str(cfg.routes['notify']) + \
-    '?timeWindow0Value=' + str(metric_values[0]) + \
-    '&timeWindow1Value=' + str(metric_values[1])
-    r = requests.post(uri, json=alert_conf, timeout=10)
+    if NOTIFICATIONS:
+        uri = TEST_ENV.base_uri() + str(cfg.routes['notify']) + \
+        '?timeWindow0Value=' + str(metric_values[0]) + \
+        '&timeWindow1Value=' + str(metric_values[1])
+        r = requests.post(uri, json=alert_conf, timeout=10)
