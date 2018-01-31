@@ -85,13 +85,12 @@ for idx, problem in enumerate(problems):
     print('PROBLEM ' + str(idx + 1) + '/' + str(len(problems)) + ' (error code: ' + str(problem[0]) + '):')
     #how do we find the associated AlertESParameters with the information which might be causing the problem?
     problematic_alert_configuration = problem[2]
-    problematic_alert_es_parameters_id = alert_configuration['alertESParametersId']
+    problematic_alert_es_parameters_id = problematic_alert_configuration['alertESParametersId']
     problematic_alert_es_parameters = [d for d in alert_es_parameters_array if d['id'] == problematic_alert_es_parameters_id][0]
     project_id = problematic_alert_es_parameters['projectId']
     segment_id = problematic_alert_es_parameters['segmentId']
     device_id = problematic_alert_es_parameters['deviceId']
-    alias_id = problematic_alert_es_parameters['aliasId']
-    zone_id = problematic_alert_es_parameters['zoneId']
+    #zone_id = problematic_alert_es_parameters['zoneId']
     #verify if extracted ids exist in the test environment
     if TEST_ENV == utils.Env.NEXT2:
         pp_base = cfg.next2_config['pp']
@@ -101,6 +100,8 @@ for idx, problem in enumerate(problems):
         pp_base = cfg.local_config['pp']
     elif TEST_ENV == utils.Env.PRODUCTION['pp']:
         pp_base = cfg.production_config['pp']
+
+    #is the projectId ok?
     pp_uri = pp_base + '/projects/' + str(project_id)
     r = requests.get(pp_uri)
     json_data = json.loads(r.text)
@@ -108,6 +109,32 @@ for idx, problem in enumerate(problems):
         print('Project '+str(project_id)+': '+json_data['name'])
     else:
         print('Problem reaching '+pp_uri)
+
+    #is the goalId ok?
+    if 'goalId' in problematic_alert_es_parameters:
+        goal_id = problematic_alert_es_parameters['goalId']
+        pp_uri = pp_base + '/projects/' + str(project_id) + '/goals/' + str(goal_id)
+        r = requests.get(pp_uri)
+        json_data = json.loads(r.text)
+        if r.status_code == 200:
+            print('Goal ' + str(goal_id) + ': ' + json_data['name'])
+        else:
+            print('Problem reaching ' + pp_uri)
+
+    #is the aliasId ok?
+    if 'aliasId' in problematic_alert_es_parameters:
+        alias_id = problematic_alert_es_parameters['aliasId']
+        pp_uri = pp_base + '/pages/' + str(alias_id)
+        r = requests.get(pp_uri)
+        json_data = json.loads(r.text)
+        if r.status_code == 200 and json_data['projectId'] == project_id:
+            print('Alias ' + str(alias_id) + ': ' + json_data['name'])
+        else:
+            print('Problem reaching ' + pp_uri)
+        print('lala')
+
+
+
     print('\t' + "curl --request POST --url '" + uri + "' --header 'content-type: application/json' --data '" + str(
         problem[2]).replace("\'", "\"") + "' -i")
     print('***')
