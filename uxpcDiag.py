@@ -7,8 +7,8 @@ import serviceConfig as cfg
 import utils
 
 NOTIFICATIONS = False
-INPUT_ENV = utils.Env.NEXT2
-TEST_ENV = utils.Env.NEXT2
+INPUT_ENV = utils.Env.STAGING
+TEST_ENV = utils.Env.STAGING
 
 # fetch alerts
 r = endpoints.fetchAlertConfigs(INPUT_ENV)
