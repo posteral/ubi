@@ -11,3 +11,14 @@ class Env(Enum):
 
     def base_uri(self):
         return self.value
+
+    def pp_base_uri(self):
+        if self == Env.NEXT2:
+            return cfg.next2_config['pp']
+        elif self == Env.STAGING:
+            return cfg.staging_config['pp']
+        elif self == Env.PRODUCTION:
+            return cfg.production_config['pp']
+        else:
+            return cfg.local_config['pp']
+
