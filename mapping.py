@@ -20,14 +20,18 @@ def get_mappings_in_project(env, p_id, p_name):
     response = requests.get(uri)
     data = json.loads(response.text)
     print('# of mappings in project '+str(p_id)+' ('+p_name+'): '+str(len(data)))
-    #return something
+    #@todo: return something
 
 TEST_ENV = utils.Env.PRODUCTION
 
-projects = get_projects_in_env(TEST_ENV)
+#projects = get_projects_in_env(TEST_ENV)
+#
+#for project in projects:
+#    project_id = project[0]
+#    project_name = project[1]
+#    get_mappings_in_project(TEST_ENV, project_id, project_name)
 
-for project in projects:
-    project_id = project[0]
-    project_name = project[1]
-    get_mappings_in_project(TEST_ENV, project_id, project_name)
-
+file = open('stats/next2_mappings_per_project.txt','r')
+file_lines = file.readlines()
+print(file_lines)
+file.close()
