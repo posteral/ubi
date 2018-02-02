@@ -6,9 +6,10 @@ import endpoints
 import serviceConfig as cfg
 import utils
 
+TIME_OUT = 30
 NOTIFICATIONS = False
-INPUT_ENV = utils.Env.STAGING
-TEST_ENV = utils.Env.STAGING
+INPUT_ENV = utils.Env.NEXT2
+TEST_ENV = utils.Env.NEXT2
 
 # fetch alerts
 r = endpoints.fetchAlertConfigs(INPUT_ENV)
@@ -29,7 +30,7 @@ print('-------------------------------------------------------')
 uri = TEST_ENV.base_uri() + str(cfg.routes['save-alert-esparameters'])
 
 for alert_es_parameters in alert_es_parameters_array:
-    r = requests.post(uri, json=alert_es_parameters, timeout=10)
+    r = requests.post(uri, json=alert_es_parameters, timeout=TIME_OUT)
 
 hpg_requests = 0
 # try to calculate metric values for alert configuration
@@ -39,7 +40,7 @@ uri = TEST_ENV.base_uri() + str(cfg.routes['get-metric-values'])
 response_array = []
 
 for idx, alert_configuration in enumerate(alert_configuration_array):
-    r = requests.post(uri, json=alert_configuration, timeout=10)
+    r = requests.post(uri, json=alert_configuration, timeout=TIME_OUT)
     metric_values = json.loads(r.text)
     response_array.append(metric_values)
     print(str(idx + 1) + '\t alertId: ' + str(alert_configuration['alertId']) + ', ' + str(metric_values))
@@ -60,7 +61,7 @@ for alert_conf_and_response in alert_confs_and_responses:
     if time_window_0_value is None:
         uri = TEST_ENV.base_uri() + str(
             cfg.routes['get-metric-value']) + '?timeWindow=timeWindow0'
-        r = requests.post(uri, json=alert_conf, timeout=10)
+        r = requests.post(uri, json=alert_conf, timeout=TIME_OUT)
         hpg_requests = hpg_requests + 1
         if r.status_code == 200:  # success
             time_window_0_value = json.loads(r.text)['timeWindow0Value']
@@ -71,7 +72,7 @@ for alert_conf_and_response in alert_confs_and_responses:
     if time_window_1_value is None:
         uri = TEST_ENV.base_uri() + str(
             cfg.routes['get-metric-value']) + '?timeWindow=timeWindow1'
-        r = requests.post(uri, json=alert_conf, timeout=10)
+        r = requests.post(uri, json=alert_conf, timeout=TIME_OUT)
         hpg_requests = hpg_requests + 1
         if r.status_code == 200:  # success
             time_window_1_value = json.loads(r.text)['timeWindow1Value']
@@ -83,6 +84,7 @@ for alert_conf_and_response in alert_confs_and_responses:
 print('\n-----------------Troubleshooting-----------------------')
 for idx, problem in enumerate(problems):
     print('PROBLEM ' + str(idx + 1) + '/' + str(len(problems)) + ' (error code: ' + str(problem[0]) + '):')
+    print('ParamsId'+str(problem[2]['alertESParametersId']))
     print('Alert '+str(problem[2]['alertId']))
     #how do we find the associated AlertESParameters with the information which might be causing the problem?
     problematic_alert_configuration = problem[2]
@@ -98,12 +100,12 @@ for idx, problem in enumerate(problems):
         pp_base = cfg.staging_config['pp']
     elif TEST_ENV == utils.Env.LOCAL:
         pp_base = cfg.local_config['pp']
-    elif TEST_ENV == utils.Env.PRODUCTION['pp']:
+    elif TEST_ENV == utils.Env.PRODUCTION:
         pp_base = cfg.production_config['pp']
 
     #is the projectId ok?
     pp_uri = pp_base + '/projects/' + str(project_id)
-    r = requests.get(pp_uri)
+    r = requests.get(pp_uri,timeout=TIME_OUT)
     json_data = json.loads(r.text)
     if r.status_code == 200:
         print('Project '+str(project_id)+': '+json_data['name'])
@@ -112,20 +114,25 @@ for idx, problem in enumerate(problems):
 
     #is the goalId ok?
     if 'goalId' in problematic_alert_es_parameters:
-        goal_id = problematic_alert_es_parameters['goalId']
-        pp_uri = pp_base + '/projects/' + str(project_id) + '/goals/' + str(goal_id)
-        r = requests.get(pp_uri)
-        json_data = json.loads(r.text)
-        if r.status_code == 200:
-            print('Goal ' + str(goal_id) + ': ' + json_data['name'])
+        metric_name = str(problematic_alert_es_parameters['metric'])
+        if metric_name.lower().startswith('conversion'):
+            print('Metric name: '+metric_name)
+            goal_id = problematic_alert_es_parameters['goalId']
+            pp_uri = pp_base + '/projects/' + str(project_id) + '/goals/' + str(goal_id)
+            r = requests.get(pp_uri,timeout=TIME_OUT)
+            json_data = json.loads(r.text)
+            if r.status_code == 200:
+                print('Goal ' + str(goal_id) + ': ' + json_data['name'])
+            else:
+                print('Problem with goalId when reaching ' + pp_uri)
         else:
-            print('Problem with goalId when reaching ' + pp_uri)
+            print('Metric '+metric_name+' should not have goalId')
 
     #is the aliasId ok?
     if 'aliasId' in problematic_alert_es_parameters:
         alias_id = problematic_alert_es_parameters['aliasId']
         pp_uri = pp_base + '/pages/' + str(alias_id)
-        r = requests.get(pp_uri)
+        r = requests.get(pp_uri,timeout=TIME_OUT)
         json_data = json.loads(r.text)
         if r.status_code == 200 and json_data['projectId'] == project_id:
             print('Alias ' + str(alias_id) + ': ' + json_data['name'])
@@ -136,7 +143,7 @@ for idx, problem in enumerate(problems):
     if 'zoneId' in problematic_alert_es_parameters:
         zone_id = problematic_alert_es_parameters['zoneId']
         pp_uri = pp_base + '/zones/' + str(zone_id)
-        r = requests.get(pp_uri)
+        r = requests.get(pp_uri,timeout=TIME_OUT)
         json_data = json.loads(r.text)
         if r.status_code == 200:
             print('Zone ' + str(zone_id) + ': ' + json_data['name'])
@@ -161,16 +168,16 @@ for alert_conf_and_metric_values in alert_confs_and_metric_values:
         uri = TEST_ENV.base_uri() + str(
             cfg.routes['save-metric-value']) + \
               '?timeWindow=timeWindow0&value=' + str(metric_values[0])
-        r = requests.post(uri, json=alert_conf, timeout=10)
+        r = requests.post(uri, json=alert_conf, timeout=TIME_OUT)
     if metric_values[1] is not None:
         uri = TEST_ENV.base_uri() + str(
             cfg.routes['save-metric-value']) + \
               '?timeWindow=timeWindow1&value=' + str(metric_values[1])
-        r = requests.post(uri, json=alert_conf, timeout=10)
+        r = requests.post(uri, json=alert_conf, timeout=TIME_OUT)
 
     #post notification
     if NOTIFICATIONS:
         uri = TEST_ENV.base_uri() + str(cfg.routes['notify']) + \
         '?timeWindow0Value=' + str(metric_values[0]) + \
         '&timeWindow1Value=' + str(metric_values[1])
-        r = requests.post(uri, json=alert_conf, timeout=10)
+        r = requests.post(uri, json=alert_conf, timeout=TIME_OUT)
