@@ -31,18 +31,27 @@ TEST_ENV = utils.Env.PRODUCTION
 #    project_name = project[1]
 #    get_mappings_in_project(TEST_ENV, project_id, project_name)
 
-file = open('stats/next2_mappings_per_project.txt','r')
+file = open(TEST_ENV.mappings_file(),'r')
 file_lines = file.readlines()
-number_of_projects = int(file_lines[1].split(': ')[1])
+total_number_of_projects = int(file_lines[1].split(': ')[1])
+mappings_in_projects = []
 for project_line in file_lines[2:]:
-    mappings_per_project = []
     line = project_line.replace('\n','').replace('((', '(').replace('))',')')
-    print(line)
+    #print(line)
     substring_1 = line.split('(')[0].split(' ')
     substring_2 = line.split(')')[1].split(' ')
     project_name = line.split('(')[1].split(')')[0]
     project_id = int(substring_1[5])
     number_of_mappings = int(substring_2[1])
+    mappings_in_projects.append((project_id, project_name, number_of_mappings))
 
-print(file_lines)
+print('# projects in '+str(TEST_ENV).split('.')[1]+': '+str(total_number_of_projects))
+#now we have the list of projects and their respective number of mappings
+more_than_zero_mappings = []
+
+for mappings_in_project in mappings_in_projects:
+    if mappings_in_project[2] > 0:
+        more_than_zero_mappings.append(mappings_in_project)
+
+print('# projects with more than 0 mappings: '+str(len(more_than_zero_mappings)))
 file.close()

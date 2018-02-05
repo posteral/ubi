@@ -22,3 +22,13 @@ class Env(Enum):
         else:
             return cfg.local_config['pp']
 
+    def mappings_file(self):
+        if self == Env.NEXT2:
+            return 'stats/next2_mappings_per_project.txt'
+        elif self == Env.STAGING:
+            return 'stats/staging_mappings_per_project.txt'
+        elif self == Env.PRODUCTION:
+            return 'stats/production_mappings_per_project.txt'
+        else:
+            return 'stats/staging_mappings_per_project.txt'
+
