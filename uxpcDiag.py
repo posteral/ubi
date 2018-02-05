@@ -8,8 +8,8 @@ import utils
 
 TIME_OUT = 30
 NOTIFICATIONS = False
-INPUT_ENV = utils.Env.NEXT2
-TEST_ENV = utils.Env.NEXT2
+INPUT_ENV = utils.Env.PRODUCTION
+TEST_ENV = utils.Env.LOCAL
 
 # fetch alerts
 r = endpoints.fetchAlertConfigs(INPUT_ENV)

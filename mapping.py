@@ -33,5 +33,16 @@ TEST_ENV = utils.Env.PRODUCTION
 
 file = open('stats/next2_mappings_per_project.txt','r')
 file_lines = file.readlines()
+number_of_projects = int(file_lines[1].split(': ')[1])
+for project_line in file_lines[2:]:
+    mappings_per_project = []
+    line = project_line.replace('\n','').replace('((', '(').replace('))',')')
+    print(line)
+    substring_1 = line.split('(')[0].split(' ')
+    substring_2 = line.split(')')[1].split(' ')
+    project_name = line.split('(')[1].split(')')[0]
+    project_id = int(substring_1[5])
+    number_of_mappings = int(substring_2[1])
+
 print(file_lines)
 file.close()
