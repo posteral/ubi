@@ -123,8 +123,10 @@ for idx, problem in enumerate(problems):
             json_data = json.loads(r.text)
             if r.status_code == 200:
                 print('Goal ' + str(goal_id) + ': ' + json_data['name'])
-            else:
+            elif goal_id != -1:
                 print('Problem with goalId when reaching ' + pp_uri)
+            else:
+                print('Unidentified problem')
         else:
             print('Metric '+metric_name+' should not have goalId')
 

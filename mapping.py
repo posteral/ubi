@@ -54,4 +54,20 @@ for mappings_in_project in mappings_in_projects:
         more_than_zero_mappings.append(mappings_in_project)
 
 print('# projects with more than 0 mappings: '+str(len(more_than_zero_mappings)))
+
+total_number_of_mappings_in_environment = 0
+for mappings_in_project in more_than_zero_mappings:
+    total_number_of_mappings_in_environment = total_number_of_mappings_in_environment + mappings_in_project[2]
+
+print('# of mappings in environment: '+str(total_number_of_mappings_in_environment))
+average_mappings_per_project = total_number_of_mappings_in_environment/len(more_than_zero_mappings)
+print('# of average mappings per project: '+str(average_mappings_per_project))
+
+sorted_by_number_of_mappings = sorted(more_than_zero_mappings, key=lambda tup: tup[2], reverse=True)
+print('Projects with most mappings: '+str(sorted_by_number_of_mappings))
+
+#what information can we obtain from pp about mappings?
+
+
+
 file.close()
