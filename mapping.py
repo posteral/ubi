@@ -2,7 +2,7 @@ import json
 
 import requests
 
-import utils
+import env
 
 def get_projects_in_env(env):
     projects = []
@@ -22,7 +22,7 @@ def get_mappings_in_project(env, p_id, p_name):
     print('# of mappings in project '+str(p_id)+' ('+p_name+'): '+str(len(data)))
     #@todo: return something
 
-TEST_ENV = utils.Env.PRODUCTION
+TEST_ENV = env.Env.PRODUCTION
 
 #projects = get_projects_in_env(TEST_ENV)
 #

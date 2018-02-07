@@ -4,12 +4,12 @@ import requests
 
 import endpoints
 import serviceConfig as cfg
-import utils
+import env
 
 TIME_OUT = 30
 NOTIFICATIONS = False
-INPUT_ENV = utils.Env.PRODUCTION
-TEST_ENV = utils.Env.LOCAL
+INPUT_ENV = env.Env.NEXT2
+TEST_ENV = env.Env.NEXT2
 
 # fetch alerts
 r = endpoints.fetchAlertConfigs(INPUT_ENV)
@@ -81,6 +81,45 @@ for alert_conf_and_response in alert_confs_and_responses:
 
     metric_values.append((time_window_0_value, time_window_1_value))
 
+
+print('\n# of hpg-requests (ES queries) needed: ' + str(hpg_requests))
+alert_confs_and_metric_values = zip(alert_configuration_array, metric_values)
+
+
+# save metric values in local db and notify
+
+for alert_conf_and_metric_values in alert_confs_and_metric_values:
+    alert_conf = alert_conf_and_metric_values[0]
+    metric_values = alert_conf_and_metric_values[1]
+    # save metric value for time window 0
+    notification_metric_value_0 = ''
+    notification_metric_value_1 = ''
+    if metric_values[0] is not None:
+        notification_metric_value_0 = str(metric_values[0])
+        uri = TEST_ENV.base_uri() + str(
+            cfg.routes['save-metric-value']) + \
+              '?timeWindow=timeWindow0&value=' + str(metric_values[0])
+        r = requests.post(uri, json=alert_conf, timeout=TIME_OUT)
+    else:
+        notification_metric_value_0 = 'null'
+    if metric_values[1] is not None:
+        notification_metric_value_1 = str(metric_values[1])
+        uri = TEST_ENV.base_uri() + str(
+            cfg.routes['save-metric-value']) + \
+              '?timeWindow=timeWindow1&value=' + str(metric_values[1])
+        r = requests.post(uri, json=alert_conf, timeout=TIME_OUT)
+    else:
+        notification_metric_value_1 = 'null'
+    #post notification
+    if NOTIFICATIONS:
+        uri = TEST_ENV.base_uri() + str(cfg.routes['notify']) + \
+        '?timeWindow0Value=' + notification_metric_value_0 + \
+        '&timeWindow1Value=' + notification_metric_value_1
+        r = requests.post(uri, json=alert_conf, timeout=TIME_OUT)
+        if r.status_code != 200 and r.status_code != 201:
+            problems.append((r.status_code, uri, alert_conf))
+
+
 print('\n-----------------Troubleshooting-----------------------')
 for idx, problem in enumerate(problems):
     print('PROBLEM ' + str(idx + 1) + '/' + str(len(problems)) + ' (error code: ' + str(problem[0]) + '):')
@@ -94,13 +133,13 @@ for idx, problem in enumerate(problems):
     segment_id = problematic_alert_es_parameters['segmentId']
     device_id = problematic_alert_es_parameters['deviceId']
     #verify if extracted ids exist in the test environment
-    if TEST_ENV == utils.Env.NEXT2:
+    if TEST_ENV == env.Env.NEXT2:
         pp_base = cfg.next2_config['pp']
-    elif TEST_ENV == utils.Env.STAGING:
+    elif TEST_ENV == env.Env.STAGING:
         pp_base = cfg.staging_config['pp']
-    elif TEST_ENV == utils.Env.LOCAL:
+    elif TEST_ENV == env.Env.LOCAL:
         pp_base = cfg.local_config['pp']
-    elif TEST_ENV == utils.Env.PRODUCTION:
+    elif TEST_ENV == env.Env.PRODUCTION:
         pp_base = cfg.production_config['pp']
 
     #is the projectId ok?
@@ -151,35 +190,7 @@ for idx, problem in enumerate(problems):
             print('Zone ' + str(zone_id) + ': ' + json_data['name'])
         else:
             print('Problem with zoneId when reaching ' + pp_uri)
-    print('\t' + "curl --request POST --url '" + uri + "' --header 'content-type: application/json' --data '" + str(
+    print('\t' + "curl --request POST --url '" + problem[1] + "' --header 'content-type: application/json' --data '" + str(
         problem[2]).replace("\'", "\"") + "' -i")
     print('***')
 print('-------------------------------------------------------')
-
-print('\n# of hpg-requests (ES queries) needed: ' + str(hpg_requests))
-alert_confs_and_metric_values = zip(alert_configuration_array, metric_values)
-
-
-# save metric values in local db and notify
-
-for alert_conf_and_metric_values in alert_confs_and_metric_values:
-    alert_conf = alert_conf_and_metric_values[0]
-    metric_values = alert_conf_and_metric_values[1]
-    # save metric value for time window 0
-    if metric_values[0] is not None:
-        uri = TEST_ENV.base_uri() + str(
-            cfg.routes['save-metric-value']) + \
-              '?timeWindow=timeWindow0&value=' + str(metric_values[0])
-        r = requests.post(uri, json=alert_conf, timeout=TIME_OUT)
-    if metric_values[1] is not None:
-        uri = TEST_ENV.base_uri() + str(
-            cfg.routes['save-metric-value']) + \
-              '?timeWindow=timeWindow1&value=' + str(metric_values[1])
-        r = requests.post(uri, json=alert_conf, timeout=TIME_OUT)
-
-    #post notification
-    if NOTIFICATIONS:
-        uri = TEST_ENV.base_uri() + str(cfg.routes['notify']) + \
-        '?timeWindow0Value=' + str(metric_values[0]) + \
-        '&timeWindow1Value=' + str(metric_values[1])
-        r = requests.post(uri, json=alert_conf, timeout=TIME_OUT)

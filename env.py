@@ -13,14 +13,10 @@ class Env(Enum):
         return self.value
 
     def pp_base_uri(self):
-        if self == Env.NEXT2:
-            return cfg.next2_config['pp']
-        elif self == Env.STAGING:
-            return cfg.staging_config['pp']
-        elif self == Env.PRODUCTION:
-            return cfg.production_config['pp']
-        else:
-            return cfg.local_config['pp']
+        return self.__config_selector('pp')
+
+    def pages_comparator_base_uri(self):
+        return self.__config_selector('pcomp')
 
     def mappings_file(self):
         if self == Env.NEXT2:
@@ -31,4 +27,15 @@ class Env(Enum):
             return 'stats/production_mappings_per_project.txt'
         else:
             return 'stats/staging_mappings_per_project.txt'
+
+    def __config_selector(self, key):
+        if self == Env.NEXT2:
+            return cfg.next2_config[key]
+        elif self == Env.STAGING:
+            return cfg.staging_config[key]
+        elif self == Env.PRODUCTION:
+            return cfg.production_config[key]
+        else:
+            return cfg.local_config[key]
+
 
