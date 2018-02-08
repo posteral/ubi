@@ -8,8 +8,8 @@ import env
 
 TIME_OUT = 30
 NOTIFICATIONS = False
-INPUT_ENV = env.Env.NEXT2
-TEST_ENV = env.Env.NEXT2
+INPUT_ENV = env.Env.STAGING
+TEST_ENV = env.Env.LOCAL
 
 # fetch alerts
 r = endpoints.fetchAlertConfigs(INPUT_ENV)
