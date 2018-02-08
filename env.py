@@ -4,19 +4,19 @@ import serviceConfig as cfg
 
 
 class Env(Enum):
-    NEXT2 = str(cfg.next2_config['host']) + ':' + str(cfg.next2_config['port'])
-    STAGING = str(cfg.staging_config['host']) + ':' + str(cfg.staging_config['port'])
-    PRODUCTION = str(cfg.production_config['host']) + ':' + str(cfg.production_config['port'])
-    LOCAL = str(cfg.local_config['host']) + ':' + str(cfg.local_config['port'])
-
-    def base_uri(self):
-        return self.value
+    NEXT2 = 1
+    STAGING = 2
+    PRODUCTION = 3
+    LOCAL = 4
 
     def pp_base_uri(self):
-        return self.__config_selector('pp')
+        return self.__base_uri('pp')
 
     def pages_comparator_base_uri(self):
-        return self.__config_selector('pcomp')
+        return self.__base_uri('pcomp')
+
+    def uxpc_base_uri(self):
+        return self.__base_uri('uxpc')
 
     def mappings_file(self):
         if self == Env.NEXT2:
@@ -27,6 +27,9 @@ class Env(Enum):
             return 'stats/production_mappings_per_project.txt'
         else:
             return 'stats/staging_mappings_per_project.txt'
+
+    def __base_uri(self, service_name):
+        return self.__config_selector(service_name) + ':' + str(self.__config_selector('port'))
 
     def __config_selector(self, key):
         if self == Env.NEXT2:

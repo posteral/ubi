@@ -27,7 +27,7 @@ print('-------------------------------------------------------')
 
 # save alert-es-parameters in local db
 
-uri = TEST_ENV.base_uri() + str(cfg.routes['save-alert-esparameters'])
+uri = TEST_ENV.uxpc_base_uri() + str(cfg.routes['save-alert-esparameters'])
 
 for alert_es_parameters in alert_es_parameters_array:
     r = requests.post(uri, json=alert_es_parameters, timeout=TIME_OUT)
@@ -35,7 +35,7 @@ for alert_es_parameters in alert_es_parameters_array:
 hpg_requests = 0
 # try to calculate metric values for alert configuration
 
-uri = TEST_ENV.base_uri() + str(cfg.routes['get-metric-values'])
+uri = TEST_ENV.uxpc_base_uri() + str(cfg.routes['get-metric-values'])
 
 response_array = []
 
@@ -59,7 +59,7 @@ for alert_conf_and_response in alert_confs_and_responses:
     # check if time window 0 value is present in database
     time_window_0_value = response['timeWindow0Value']
     if time_window_0_value is None:
-        uri = TEST_ENV.base_uri() + str(
+        uri = TEST_ENV.uxpc_base_uri() + str(
             cfg.routes['get-metric-value']) + '?timeWindow=timeWindow0'
         r = requests.post(uri, json=alert_conf, timeout=TIME_OUT)
         hpg_requests = hpg_requests + 1
@@ -70,7 +70,7 @@ for alert_conf_and_response in alert_confs_and_responses:
     # check if time window 0 value is present in database
     time_window_1_value = response['timeWindow1Value']
     if time_window_1_value is None:
-        uri = TEST_ENV.base_uri() + str(
+        uri = TEST_ENV.uxpc_base_uri() + str(
             cfg.routes['get-metric-value']) + '?timeWindow=timeWindow1'
         r = requests.post(uri, json=alert_conf, timeout=TIME_OUT)
         hpg_requests = hpg_requests + 1
@@ -96,7 +96,7 @@ for alert_conf_and_metric_values in alert_confs_and_metric_values:
     notification_metric_value_1 = ''
     if metric_values[0] is not None:
         notification_metric_value_0 = str(metric_values[0])
-        uri = TEST_ENV.base_uri() + str(
+        uri = TEST_ENV.uxpc_base_uri() + str(
             cfg.routes['save-metric-value']) + \
               '?timeWindow=timeWindow0&value=' + str(metric_values[0])
         r = requests.post(uri, json=alert_conf, timeout=TIME_OUT)
@@ -104,7 +104,7 @@ for alert_conf_and_metric_values in alert_confs_and_metric_values:
         notification_metric_value_0 = 'null'
     if metric_values[1] is not None:
         notification_metric_value_1 = str(metric_values[1])
-        uri = TEST_ENV.base_uri() + str(
+        uri = TEST_ENV.uxpc_base_uri() + str(
             cfg.routes['save-metric-value']) + \
               '?timeWindow=timeWindow1&value=' + str(metric_values[1])
         r = requests.post(uri, json=alert_conf, timeout=TIME_OUT)
@@ -112,7 +112,7 @@ for alert_conf_and_metric_values in alert_confs_and_metric_values:
         notification_metric_value_1 = 'null'
     #post notification
     if NOTIFICATIONS:
-        uri = TEST_ENV.base_uri() + str(cfg.routes['notify']) + \
+        uri = TEST_ENV.uxpc_base_uri() + str(cfg.routes['notify']) + \
         '?timeWindow0Value=' + notification_metric_value_0 + \
         '&timeWindow1Value=' + notification_metric_value_1
         r = requests.post(uri, json=alert_conf, timeout=TIME_OUT)
