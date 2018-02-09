@@ -12,6 +12,9 @@ class Env(Enum):
     def pp_base_uri(self):
         return self.__base_uri('pp')
 
+    def dashboard_base_uri(self):
+        return self.__base_uri('dashboard')
+
     def pages_comparator_base_uri(self):
         return self.__base_uri('pcomp')
 

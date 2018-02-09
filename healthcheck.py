@@ -10,6 +10,7 @@ services_being_tested = dict()
 
 services_being_tested['pages-comparator'] = TEST_ENV.pages_comparator_base_uri()
 services_being_tested['ws-uxpc-alerts'] = TEST_ENV.uxpc_base_uri()
+services_being_tested['dashboard'] = TEST_ENV.dashboard_base_uri()
 
 for service_name, base_uri in services_being_tested.items():
     uri = base_uri + '/healthcheck'
