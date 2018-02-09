@@ -15,6 +15,9 @@ class Env(Enum):
     def dashboard_base_uri(self):
         return self.__base_uri('dashboard')
 
+    def hpg_base_uri(self):
+        return self.__base_uri('hpg')
+
     def pages_comparator_base_uri(self):
         return self.__base_uri('pcomp')
 

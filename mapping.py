@@ -4,6 +4,9 @@ import requests
 
 import env
 
+import serviceConfig as cfg
+
+
 def get_projects_in_env(env):
     projects = []
     uri = env.pp_base_uri() + '/projects'
@@ -66,8 +69,13 @@ print('# of average mappings per project: '+str(average_mappings_per_project))
 sorted_by_number_of_mappings = sorted(more_than_zero_mappings, key=lambda tup: tup[2], reverse=True)
 print('Projects with most mappings: '+str(sorted_by_number_of_mappings))
 
-#what information can we obtain from pp about mappings?
+#what's the average number of aliases per mapping?
+#let's use hypergate to find out
 
+uri = TEST_ENV.hpg_base_uri() + '/project-settings/v1/projects/269/mappings'
+response = requests.get(uri, headers = cfg.hpg_headers)
+
+print(response)
 
 
 file.close()
