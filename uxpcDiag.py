@@ -8,7 +8,7 @@ import env
 
 TIME_OUT = 30
 NOTIFICATIONS = False
-INPUT_ENV = env.Env.STAGING
+INPUT_ENV = env.Env.NEXT2
 TEST_ENV = env.Env.LOCAL
 
 # fetch alerts
@@ -190,6 +190,8 @@ for idx, problem in enumerate(problems):
             print('Zone ' + str(zone_id) + ': ' + json_data['name'])
         else:
             print('Problem with zoneId when reaching ' + pp_uri)
+    if TEST_ENV == env.Env.LOCAL:
+        print('NOTE: update application.conf with '+str(INPUT_ENV).split('.')[1] +' information.')
     print('\t' + "curl --request POST --url '" + problem[1] + "' --header 'content-type: application/json' --data '" + str(
         problem[2]).replace("\'", "\"") + "' -i")
     print('***')
