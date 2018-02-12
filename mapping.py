@@ -6,6 +6,7 @@ import env
 
 import serviceConfig as cfg
 
+TEST_ENV = env.Env.NEXT2
 
 def get_projects_in_env(env):
     projects = []
@@ -24,8 +25,6 @@ def get_mappings_in_project(env, p_id, p_name):
     data = json.loads(response.text)
     print('# of mappings in project '+str(p_id)+' ('+p_name+'): '+str(len(data)))
     #@todo: return something
-
-TEST_ENV = env.Env.PRODUCTION
 
 #projects = get_projects_in_env(TEST_ENV)
 #
@@ -72,10 +71,35 @@ print('Projects with most mappings: '+str(sorted_by_number_of_mappings))
 #what's the average number of aliases per mapping?
 #let's use hypergate to find out
 
-uri = TEST_ENV.hpg_base_uri() + '/project-settings/v1/projects/269/mappings'
-response = requests.get(uri, headers = cfg.hpg_headers)
+inconsistencies = 0
+avg_nb_aliases_per_mapping_in_projects = []
+for mappings_in_project in more_than_zero_mappings:
+    project_id = mappings_in_project[0]
+    project_name = mappings_in_project[1]
+    nb_mappings_on_pp = mappings_in_project[2]
+    uri = TEST_ENV.hpg_base_uri() + '/project-settings/v1/projects/'+str(project_id)+'/mappings'
+    response = requests.get(uri, headers=cfg.hpg_headers)
+    data = json.loads(response.text)
+    mappings = data['mappings']
+    #checking pp / hpg inconsistencies
+    if nb_mappings_on_pp != len(mappings):
+        inconsistencies = inconsistencies + 1
+    if len(mappings) > 0 :
+        total_number_of_aliases = 0
+        for mapping in mappings:
+            number_of_aliases = int(len(mapping['aliasesIds']))
+            total_number_of_aliases = total_number_of_aliases + number_of_aliases
+            avg_nb_aliases_per_mapping = total_number_of_aliases/len(mappings)
+            avg_nb_aliases_per_mapping_in_projects.append((project_id, project_name, avg_nb_aliases_per_mapping))
+            #print(avg_nb_aliases_per_mapping)
 
-print(response)
+print("# inconsistencies pp/hpg: "+str(inconsistencies))
+average_sum = 0
+for avg in avg_nb_aliases_per_mapping_in_projects:
+    average_sum = average_sum + avg[2]
 
+avg_aliases_per_mapping_per_project_in_env = average_sum/len(avg_nb_aliases_per_mapping_in_projects)
+
+print("# of overage aliases per mapping in a project: "+str(avg_aliases_per_mapping_per_project_in_env))
 
 file.close()
