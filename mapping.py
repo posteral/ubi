@@ -100,6 +100,6 @@ for avg in avg_nb_aliases_per_mapping_in_projects:
 
 avg_aliases_per_mapping_per_project_in_env = average_sum/len(avg_nb_aliases_per_mapping_in_projects)
 
-print("# of overage aliases per mapping in a project: "+str(avg_aliases_per_mapping_per_project_in_env))
+print("# of Average aliases per mapping in a project: "+str(avg_aliases_per_mapping_per_project_in_env))
 
 file.close()
