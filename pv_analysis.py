@@ -7,4 +7,5 @@ for project_pageviews in data:
     project_id =  int(split[0])
     project_name = split[1]
     pageviews = int(split[2])
+
     print(str(project_id)+';'+project_name+';'+str(pageviews))
