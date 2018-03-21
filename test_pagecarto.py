@@ -13,6 +13,7 @@ number_of_results = 20
 
 page_target = '{"nodeType":"OR","children":[{"nodeType":"AND","children":[{"field":"page:path","operator":"not_contains","value":".html","nodeType":"filter"}]}]}'
 parsed = json.loads(page_target)
+
 print(json.dumps(parsed, indent=4, sort_keys=False))
 
 fov1 = '{"field":"page:path","operator":"contains","value":"l-1175520","nodeType":"filter"}'
