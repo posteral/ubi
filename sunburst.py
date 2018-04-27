@@ -15,8 +15,7 @@ del sunburst_response_file
 del sunburst_response
 del parsed_response
 
-# len(tree.children) == len(elements) - 1 => we don't consider "END_PATH" in the former
-# let's check
+# len(tree.children) == len(elements) - 1 => we don't consider "END_PATH" in the former => because percent is 0.0?
 assert(len(elements) == len(tree["children"]) + 1)
 percents = list(map(lambda x: x["percent"], elements))
 assert(sum(percents) == 1.0)
@@ -29,5 +28,3 @@ first_level = root_node["children"]
 
 sizes = list(map(lambda x: x["size"], first_level))
 assert(sum(sizes) == root_node["size"])
-
-print("finished")
