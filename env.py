@@ -24,6 +24,7 @@ class Env(Enum):
     def uxpc_base_uri(self):
         return self.__base_uri('uxpc')
 
+
     def mappings_file(self):
         if self == Env.NEXT2:
             return 'stats/next2_mappings_per_project.txt'
